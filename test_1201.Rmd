@@ -1,0 +1,439 @@
+---
+title: "test_visuaols"
+output: html_document
+date: "2025-12-01"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+#########################################################
+# Start Date: 10/27/2025                                #
+# Update Date: 11/04/2025                               #
+# Content: Testing visualizations for annual survey     #
+# Notes:                                                #
+#########################################################
+
+# Clear workspace.
+rm(list=ls())
+
+# Set the directory
+setwd("C:/Users/RavenSimonds/OneDrive - Correctional Association of NY/Desktop/Annual Survey")
+
+# Load packages
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(RColorBrewer)
+library(scales)
+library(plotly)
+
+
+
+# Pull in survey data, clean --------------------------------------------------- 
+# Read data file but keep the leading zeroes where necessary
+annual_raw <- read.csv("master_raw_annual_survey_oct.csv", 
+                       colClasses = c(Qu7 = "character",
+                                      Qu10v = "character",
+                                      A7 = "character",
+                                      B4 = "character", 
+                                      B5 = "character",
+                                      B6 = "character",
+                                      Q25.a = "character",
+                                      Q25.b = "character",
+                                      Q25.d = "character",
+                                      Q25.e = "character",
+                                      Q25.f = "character",
+                                      B7 = "character",
+                                      C2 = "character",
+                                      C9 = "character",
+                                      C17 = "character",
+                                      C18 = "character",
+                                      D2 = "character",
+                                      F2 = "character",
+                                      G1 = "character",
+                                      G4 = "character",
+                                      Q11.a = "character",
+                                      Q11.b = "character",
+                                      I4 = "character",
+                                      I5 = "character",
+                                      I7 = "character",
+                                      M8 = "character",
+                                      P4 = "character",
+                                      P6 = "character",
+                                      P7 = "character",
+                                      Q2.a = "character",
+                                      Q2.c = "character",
+                                      Q2.b = "character",
+                                      Q4 = "character",
+                                      Q5.c = "character",
+                                      Q5.d = "character",
+                                      W6 = "character",
+                                      Z5 = "character"
+                       ))
+
+# Remove open-ended questions and survey software generated columns that aren't as readable rn
+# Select, double-check we want to select these...
+annual_raw %>% 
+  select(-ID.completed,
+         -ID.case,
+         -ID.name,
+         -ID.interviewer,
+         -ID.date,
+         -ID.start,
+         -ID.endDate,
+         -ID.end,
+         -ID.time,
+         -A8,
+         -A9,
+         -A10,
+         -Q39,
+         -Q13,
+         -W3,
+         -F7, 
+         -G3,
+         -G5,
+         -Q76,
+         -H5,
+         -J16,
+         -Q97.a,
+         -J20,
+         -K2,
+         -K4,
+         -K8,
+         -K11,
+         -K12,
+         -Q114,
+         -Q73,
+         -M12,
+         -N2,
+         -Q126.a,
+         -N12,
+         -Q146.a,
+         -N18,
+         -N21,
+         -N22,
+         -N24,
+         -Q159,
+         -Q164,
+         -O6,
+         -Q17,
+         -P8,
+         -Q3,
+         -Q5,
+         -Q7,
+         -Q8,
+         -Q10,
+         -Q11,
+         -T4,
+         -Q29,
+         -Q13.a,
+         -W8,
+         -Q45,
+         -Y3,
+         -Z2,
+         -Z3,
+         -Z4,
+         -Q179,
+         -Z6,
+         -Q26,
+         -Qu3,
+         -Qu4,
+         -Q26,
+         -Qu1,
+         -C19,
+         -C16,
+         -C13,
+         -E3,
+         -I3,
+         -Q92,
+         -Q4.a,
+         -L3,
+         -N7,
+         -Q133.a,
+         -P6.a,
+         -V4,
+         -Z5
+  )
+
+
+# Looks fine, let's make a new table    
+annual_raw_1 <- annual_raw %>% 
+  select(-ID.completed,
+         -ID.case,
+         -ID.name,
+         -ID.interviewer,
+         -ID.date,
+         -ID.start,
+         -ID.endDate,
+         -ID.end,
+         -ID.time,
+         -A8,
+         -A9,
+         -A10,
+         -Q39,
+         -Q13,
+         -W3,
+         -F7, 
+         -G3,
+         -G5,
+         -Q76,
+         -H5,
+         -J16,
+         -Q97.a,
+         -J20,
+         -K2,
+         -K4,
+         -K8,
+         -K11,
+         -K12,
+         -Q114,
+         -Q73,
+         -M12,
+         -N2,
+         -Q126.a,
+         -N12,
+         -Q146.a,
+         -N18,
+         -N21,
+         -N22,
+         -N24,
+         -Q159,
+         -Q164,
+         -O6,
+         -Q17,
+         -P8,
+         -Q3,
+         -Q5,
+         -Q7,
+         -Q8,
+         -Q10,
+         -Q11,
+         -T4,
+         -Q29,
+         -Q13.a,
+         -W8,
+         -Q45,
+         -Y3,
+         -Z2,
+         -Z3,
+         -Z4,
+         -Q179,
+         -Z6,
+         -Q26,
+         -Qu1,
+         -Q4.a,
+         -Qu3,
+         -Qu4,
+         -Q26,
+         -C16,
+         -C13,
+         -C19,       
+         -E3,
+         -I3,
+         -Q92,
+         -Q4.a,
+         -L3,
+         -N7,
+         -Q133.a,
+         -P6.a,
+         -V4,
+         -Z5
+  )    
+
+# Some differences in the naming/spelling of facilities
+# Compute string distance
+dist_qu2 <- as.dist(adist(annual_raw_1$Qu2, ignore.case = TRUE))
+
+# Hierarchical clustering
+facility <- hclust(dist_qu2)
+
+# Cut the tree into k clusters
+clusters <- cutree(facility, k = 43)
+
+# Choose a representative name for each cluster (e.g., the first name that appears in each cluster)
+cluster_names <- tapply(annual_raw_1$Qu2, clusters, function(x) x[1])
+
+# Map cluster IDs to representative facility names
+facility_strings <- cluster_names[as.character(clusters)]
+
+# Add to your data, create new table as to not override the original version
+annual_clean <- annual_raw_1 %>%
+  mutate(facility = facility_strings[match(Qu2, annual_raw_1$Qu2)])
+
+# Make sure they match the pivot table in Excel.
+annual_clean %>% 
+  group_by(facility) %>% 
+  summarize(n = n()) %>% 
+  print(n = Inf)
+
+annual_clean <- annual_clean %>%
+  mutate(facility = if_else(facility == "mohawk", "Mohawk", facility))
+
+# [ADD ADDITIONAL CLEANING HERE]
+
+# Remove older data frames, values
+rm(annual_raw, annual_raw_1)
+rm(cluster_names, clusters, dist_qu2)
+
+# Visualization specific cleaning --------------------------------- 
+annual_clean %>% 
+  group_by(facility) %>% 
+  summarize(n = n()) %>% 
+  print(n = Inf)
+
+# Remove facilities with fewer than 20 responses
+annual_clean <- annual_clean %>%
+  group_by(facility) %>%
+  filter(n() >= 20) %>%
+  ungroup()
+
+# Edgecomb, Hale Creek, Hudson, Queensborough, Ulster removed
+
+annual_clean <- annual_clean %>%
+  filter(!is.na(facility) & facility != "")
+
+# Remove NAs for facility for now 
+annual_clean <- annual_clean %>%
+  filter(!is.na(facility)) %>%
+  ungroup()
+
+# Remove RMUs from the AS for now
+annual_clean <- annual_clean %>%
+  filter(Qu6 != "6") %>%
+  ungroup()
+
+# Removes 56 survey cases
+
+# Pull in correctional facility data -------------------------------------------
+corr_info <- read.csv("facility_info.csv")
+
+merged_df <- annual_clean %>%
+  left_join(corr_info, by = "facility")
+
+# Change the 1,2 to 0, 1 for binary vars
+merged_df <- merged_df %>%
+  mutate(J2 = dplyr::recode(J2, `1` = 1, `2` = 0))
+
+merged_df <- merged_df %>%
+  mutate(N1 = dplyr::recode(N1, `1` = 1, `2` = 0))
+
+merged_df <- merged_df %>%
+  mutate(N6 = dplyr::recode(N6, `1` = 1, `2` = 0))
+
+# R1 - relations w/ staff, stacked bar chart (100%) ------------------------------
+# Relationships between staff and incarcerated people here are good.
+med_male <- merged_df %>%
+  filter(
+    FACILITY_GENDER == "MALE",
+     FACILITY_SECURITY_LEVEL == "MED",
+    !is.na(facility), facility != "",   # remove missing/blank facilities
+   !is.na(R1)                          # remove missing N2 responses
+  )
+
+# R1: "Relationships between staff and incarcerated people here are good."
+med_male <- med_male %>%
+  filter(!is.na(R1))
+
+merged_df_clean <- med_male %>%
+  filter(!is.na(facility) & str_trim(facility) != "") %>%
+  filter(!is.na(R1)) 
+
+# Reorder facilities by mean R1
+facility_means <- merged_df_clean %>%
+  group_by(facility) %>%
+  summarise(median_R1 = median(R1, na.rm = TRUE),
+            total = n(), .groups = "drop") %>%
+  arrange(median_R1) %>%
+  mutate(facility_N = paste0(facility, " (N=", total, ")"))
+
+# Join back to main data
+merged_df_clean <- merged_df_clean %>%
+  left_join(facility_means %>% select(facility, facility_N), by = "facility") %>%
+  mutate(facility_N = factor(facility_N, levels = facility_means$facility_N),
+         R1_label = factor(R1, levels = 1:5,
+                           labels = c("Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree")))
+
+# Calculate percentages per facility and R1
+df_percent <- merged_df_clean %>%
+  group_by(facility_N, R1_label) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(facility_N) %>%
+  mutate(percent = count / sum(count))
+
+fill_colors <- brewer.pal(5, "Blues")  # 5 levels in R1
+
+# Add text color based on fill brightness
+df_percent <- df_percent %>%
+  mutate(
+    fill_color = fill_colors[as.numeric(R1_label)],
+    # Compute perceived brightness: 0 (dark) to 255 (bright)
+    brightness = 0.299 * col2rgb(fill_color)[1, ] +
+      0.587 * col2rgb(fill_color)[2, ] +
+      0.114 * col2rgb(fill_color)[3, ],
+    text_color = ifelse(brightness < 150, "white", "black")  # threshold for dark
+  )
+
+# Add Google font
+# font_add_google("Work Sans", "WorkSans")
+# showtext_auto()  # enable showtext
+
+
+# Add hover text to df_percent
+df_percent <- df_percent %>%
+  mutate(hover_text = paste0(R1_label, "\nN = ", count, 
+                             "\n", scales::percent(percent, accuracy = 1)))
+
+# Create ggplot
+p <- ggplot(df_percent, aes(x = facility_N, y = percent, fill = R1_label,
+                            text = hover_text)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = scales::percent(percent, accuracy = 1),
+                color = text_color),
+            position = position_fill(vjust = 0.5),
+            size = 3, family = "WorkSans") +
+  scale_color_identity() +
+  scale_y_continuous(labels = percent_format(), expand = expansion(mult = c(0, 0.05))) +
+  scale_fill_brewer(palette = "Blues") +
+  labs(
+       x = "Facility (Med/Male ONLY)",
+       y = "%",
+       fill = "Level of Agreement") +
+  theme_minimal(base_family = "WorkSans") +
+  theme(
+    plot.title = element_text(
+      hjust = 0.5,
+      margin = margin(t = 20, b = 10)
+    ),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid = element_blank()
+  )
+
+# Just look at the plot
+p
+
+p_interactive <- ggplotly(p, tooltip = "text") %>%
+  layout(
+   # font = list(family = "Work Sans")  # forces Work Sans everywhere
+  )
+
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
